@@ -102,7 +102,8 @@ def generate_launch_description():
             'namespace': namespace,
         }.items()
     )
-
+    
+    #Legge inn wall_follower
     return LaunchDescription([
         namespace_launch_arg,
         robot_description_arg,

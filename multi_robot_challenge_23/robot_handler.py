@@ -13,7 +13,7 @@ class RobotHandlerClass(Node):
         #      of the turtlebot in the same namespace. As a callback 
         #      function use the existing clbk_lidar function 
         
-        self.named_scan_sub = self.create_subscription(LaserScan, 'scan', self.clbk_lidar, 10)
+        self.named_scan_sub = self.create_subscription(LaserScan, 'tb3_0/scan', self.clbk_lidar, 10)
 
         #---------------------------------------------------------------
 
