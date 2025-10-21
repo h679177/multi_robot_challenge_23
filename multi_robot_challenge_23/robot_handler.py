@@ -13,13 +13,13 @@ class RobotHandlerClass(Node):
         #      of the turtlebot in the same namespace. As a callback 
         #      function use the existing clbk_lidar function 
         
-        self.named_scan_sub = self.create_subscription(LaserScan, 'tb3_0/scan', self.clbk_lidar, 10)
+        self.named_scan_sub = self.create_subscription(LaserScan, '/tb3_0/scan', self.clbk_lidar, 10)
 
         #---------------------------------------------------------------
 
 	    #---------------------------------------------------------------
         #Create Publisher that publishes messages of type Float64     
-        self.pub = self.create_publisher(Float64, 'namespace_test', 10)
+        self.pub = self.create_publisher(Float64, '/tb3_0/namespace_test', 10)
 
 
         #---------------------------------------------------------------
