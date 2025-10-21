@@ -9,21 +9,22 @@ class RobotHandlerClass(Node):
         super().__init__('RobotHandlerNode')
 
         #---------------------------------------------------------------
-        #TODO: Create a Subscriber to the lidar topic (named scan) 
+        #Create a Subscriber to the lidar topic (named scan) 
         #      of the turtlebot in the same namespace. As a callback 
         #      function use the existing clbk_lidar function 
+        
+        self.named_scan_sub = self.create_subscription(LaserScan, 'scan', self.clbk_lidar, 10)
 
         #---------------------------------------------------------------
-
-        self.named_scan_sub = self.create_subscription(LaserScan, 'scan', self.clbk_lidar)
 
 	    #---------------------------------------------------------------
-        #TODO: Create Publisher that publishes messages of type Float64     
+        #Create Publisher that publishes messages of type Float64     
+        self.pub = self.create_publisher(Float64, 'namespace_test', 10)
 
-        self.named_scan_pub = self.create_publisher(Float64, 'namespace_test', 10)
 
         #---------------------------------------------------------------
-
+        
+        
         self.lidar_value = 100.0
         timer_period = 1.0  # seconds
         # Create timer function that gets executed once per second
@@ -43,9 +44,9 @@ class RobotHandlerClass(Node):
         pub_msg.data = self.lidar_value
 
         #---------------------------------------------------------------
-        #TODO: Publish pub_msg using the previously created publisher   
-        self.named_scan_pub.publish(pub_msg)
-
+        #Publish pub_msg using the previously created publisher   
+        self.pub.publish(pub_msg)
+        
         #---------------------------------------------------------------
 
 
