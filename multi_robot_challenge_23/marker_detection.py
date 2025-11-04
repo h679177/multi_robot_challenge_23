@@ -15,6 +15,9 @@ class MarkerDetection(Node):
 
         self.marker_id_sub = self.create_subscription(Int64, 'tb3_0/marker_id', self.clbk_marker_id, 10)
         self.marker_pose_sub = self.create_subscription(Pose, 'tb3_0/marker_map_pose', self.clbk_marker_map_pose, 10)
+
+        self.marker_id_sub = self.create_subscription(Int64, 'tb3_1/marker_id', self.clbk_marker_id, 10)
+        self.marker_pose_sub = self.create_subscription(Pose, 'tb3_1/marker_map_pose', self.clbk_marker_map_pose, 10)
         #-----------------------------------------------------------------------------------
         
         # Default values for variables

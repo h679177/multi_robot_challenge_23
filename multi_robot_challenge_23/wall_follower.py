@@ -16,9 +16,9 @@ class wallFollower(Node):
         self.lidar_front_0 = 100
         self.lidar_left_0 = 100
         self.lidar_front_1 = 100
-        self.lidar_left_1 = 100
+        self.lidar_right_1 = 100
         self.state = "start"
-        self.distance_from_wall = 1.0
+        self.distance_from_wall = 0.5
         
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback) 
@@ -31,24 +31,24 @@ class wallFollower(Node):
         
     def callback_laser_tb3_1(self, msg):
         self.lidar_front_1 = msg.ranges[0]
-        self.lidar_left_1 = msg.ranges[45]
+        self.lidar_right_1 = msg.ranges[315]
 
     def timer_callback(self):
         vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0, 1)
-        vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_left_1, -1)
+        vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_right_1, -1)
 
 
         self.cmd_vel_pub1.publish(vel_msg_pippi)
         self.cmd_vel_pub2.publish(vel_msg_fiona)        
         
-    def wall_follower(self, front, left, direction):
+    def wall_follower(self, front, atAngle, direction):
         vel_msg = Twist()
 
         if self.state == "start":
-            vel_msg.linear.x = 0.4
+            vel_msg.linear.x = 0.5
             vel_msg.angular.z = 0.0
             
-            if front <= self.distance_from_wall or left <= self.distance_from_wall:
+            if front <= self.distance_from_wall or atAngle <= self.distance_from_wall:
                 self.state = "wall_found"
        
         elif self.state == "wall_found":
@@ -56,22 +56,24 @@ class wallFollower(Node):
             vel_msg.angular.z = 0.0
 
             #wall to follow on left side
-            if (self.distance_from_wall - 0.1) <= left <= (self.distance_from_wall + 0.1):
-                vel_msg.linear.x = 0.3
+            if (self.distance_from_wall - 0.1) <= atAngle <= (self.distance_from_wall + 0.1):
+                vel_msg.linear.x = 0.5
                 vel_msg.angular.z = 0.0
 
             #Wall in front
             elif front <= self.distance_from_wall:
                 vel_msg.linear.x = 0.0
                 vel_msg.angular.z = -0.5 * direction
+                if front <= self.distance_from_wall - 0.3:
+                    vel_msg.linear.x = -0.3
 
             #Wall too close on left side
-            elif left < (self.distance_from_wall - 0.1):
-                vel_msg.linear.x = 0.3
+            elif atAngle < (self.distance_from_wall - 0.1):
+                vel_msg.linear.x = 0.5
                 vel_msg.angular.z = -0.1 * direction
 
             #Lost wall
-            elif left > self.distance_from_wall:
+            elif atAngle > self.distance_from_wall:
                 vel_msg.linear.x = 0.1
                 vel_msg.angular.z = 0.5 * direction
             
