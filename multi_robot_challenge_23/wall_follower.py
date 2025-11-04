@@ -34,14 +34,14 @@ class wallFollower(Node):
         self.lidar_left_1 = msg.ranges[45]
 
     def timer_callback(self):
-        vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0)
-        vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_left_1)
+        vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0, 1)
+        vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_left_1, -1)
 
 
         self.cmd_vel_pub1.publish(vel_msg_pippi)
         self.cmd_vel_pub2.publish(vel_msg_fiona)        
         
-    def wall_follower(self, front, left):
+    def wall_follower(self, front, left, direction):
         vel_msg = Twist()
 
         if self.state == "start":
@@ -63,17 +63,17 @@ class wallFollower(Node):
             #Wall in front
             elif front <= self.distance_from_wall:
                 vel_msg.linear.x = 0.0
-                vel_msg.angular.z = -0.5
+                vel_msg.angular.z = -0.5 * direction
 
             #Wall too close on left side
             elif left < (self.distance_from_wall - 0.1):
                 vel_msg.linear.x = 0.3
-                vel_msg.angular.z = -0.1
+                vel_msg.angular.z = -0.1 * direction
 
             #Lost wall
             elif left > self.distance_from_wall:
                 vel_msg.linear.x = 0.1
-                vel_msg.angular.z = 0.5
+                vel_msg.angular.z = 0.5 * direction
             
 
         return vel_msg

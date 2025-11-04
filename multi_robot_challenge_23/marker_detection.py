@@ -3,6 +3,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import Int64
 from geometry_msgs.msg import Pose, Point
+from sensor_msgs.msg    import LaserScan
 
 class MarkerDetection(Node):
     def __init__(self):
@@ -15,7 +16,7 @@ class MarkerDetection(Node):
         self.marker_id_sub = self.create_subscription(Int64, 'tb3_0/marker_id', self.clbk_marker_id, 10)
         self.marker_pose_sub = self.create_subscription(Pose, 'tb3_0/marker_map_pose', self.clbk_marker_map_pose, 10)
         #-----------------------------------------------------------------------------------
-
+        
         # Default values for variables
         self.prev_marker_id = -1
         self.marker_id = -1
@@ -30,7 +31,8 @@ class MarkerDetection(Node):
 
     def clbk_marker_id(self, msg):
         self.marker_id = msg.data
-
+    
+  
 
     def timer_callback(self):
         #-----------------------------------------------------------------------------------
@@ -41,6 +43,7 @@ class MarkerDetection(Node):
             self.get_logger().info('Marker id: ' + str(self.marker_id))
             self.get_logger().info('Position: ' + str(self.marker_position))
             self.prev_marker_id = self.marker_id
+        
 
         #-----------------------------------------------------------------------------------
         
