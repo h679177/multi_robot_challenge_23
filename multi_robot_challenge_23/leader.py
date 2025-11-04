@@ -13,8 +13,8 @@ class LeaderClass(Node):
 
 
         #-----------------------------------------------------------------------------------
-        self.robot_handler_1_pub = self.create_subscription(Float64, 'tb3_0/namespace_test', self.clbk_tb3_0_test, 10)
-        self.robot_handler_2_pub = self.create_subscription(Float64, 'tb3_1/namespace_test', self.clbk_tb3_1_test, 10)
+        self.robot_handler_1_pub = self.create_subscription(Float64, 'tb3_0/namespace_test', self.clbk_lidar, 10)
+        self.robot_handler_2_pub = self.create_subscription(Float64, 'tb3_1/namespace_test', self.clbk_lidar, 10)
 
         self.tb3_0_lidar_value = 1000
         self.tb3_1_lidar_value = 1000
