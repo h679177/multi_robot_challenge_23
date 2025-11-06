@@ -21,7 +21,6 @@ class MarkerDetection(Node):
         #-----------------------------------------------------------------------------------
         
         # Default values for variables
-        self.prev_marker_id = -1
         self.marker_id = -1
         self.marker_position = Point()
         self.marker_list = []
@@ -32,6 +31,8 @@ class MarkerDetection(Node):
     
     def clbk_marker_map_pose(self, msg):
         self.marker_position = msg.position
+
+
 
     def clbk_marker_id(self, msg):
         self.marker_id = msg.data
@@ -44,7 +45,7 @@ class MarkerDetection(Node):
         #      print out both the marker_id and the marker_position using the self.get_logger().info() function 
 
         
-        if self.marker_id not in self.marker_list:
+        if self.marker_id not in self.marker_list and self.marker_id != -1:
             self.get_logger().info('Marker id: ' + str(self.marker_id))
             self.get_logger().info('Position: ' + str(self.marker_position))
             self.marker_list.append(self.marker_id)
