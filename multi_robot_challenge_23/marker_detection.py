@@ -24,6 +24,7 @@ class MarkerDetection(Node):
         self.prev_marker_id = -1
         self.marker_id = -1
         self.marker_position = Point()
+        self.marker_list = []
 
         timer_period = 1.0  # seconds
         # Create timer function that gets executed once per second
@@ -42,7 +43,8 @@ class MarkerDetection(Node):
         #Whenever the current marker_id is different than the previous marker id
         #      print out both the marker_id and the marker_position using the self.get_logger().info() function 
 
-        if self.marker_id != self.prev_marker_id:
+        
+        if self.marker_id not in self.marker_list:
             self.get_logger().info('Marker id: ' + str(self.marker_id))
             self.get_logger().info('Position: ' + str(self.marker_position))
             self.prev_marker_id = self.marker_id
