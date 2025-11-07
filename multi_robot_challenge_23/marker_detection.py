@@ -45,7 +45,11 @@ class MarkerDetection(Node):
         #      print out both the marker_id and the marker_position using the self.get_logger().info() function 
 
         
+<<<<<<< HEAD
         if self.marker_id not in self.marker_list and self.marker_id != -1:
+=======
+        if self.marker_id not in self.marker_list and self.marker_id is not -1:
+>>>>>>> 886142f994c60f896b8710cbf0e0ba693542883a
             self.get_logger().info('Marker id: ' + str(self.marker_id))
             self.get_logger().info('Position: ' + str(self.marker_position))
             self.marker_list.append(self.marker_id)
