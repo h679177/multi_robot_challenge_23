@@ -7,6 +7,8 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetLaunchConfi
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+import launch
+import launch_ros
 
 import xacro
 
@@ -102,7 +104,14 @@ def generate_launch_description():
             'namespace': namespace,
         }.items()
     )
-    
+
+       
+    '''scoring = launch_ros.actions.Node(
+        package='scoring',
+        executable='scoring',
+        name='scoring'),'''
+
+
     #Legge inn wall_follower
     return LaunchDescription([
         namespace_launch_arg,
@@ -114,4 +123,5 @@ def generate_launch_description():
         spawn_entity,
         tf_map_to_odom,
         aruco_recognition,
+        #scoring
     ])

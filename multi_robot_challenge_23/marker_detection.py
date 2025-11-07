@@ -1,9 +1,13 @@
 import rclpy
 from rclpy.node import Node
-
 from std_msgs.msg import Int64
 from geometry_msgs.msg import Pose, Point
 from sensor_msgs.msg    import LaserScan
+import sys, os
+sys.path.append(os.path.abspath('../multi_robot_scoring/scoring_interfaces/srv'))
+
+print(sys.path)
+from scoring_interfaces.srv import SetMarkerPosition
 
 class MarkerDetection(Node):
     def __init__(self):
@@ -18,9 +22,9 @@ class MarkerDetection(Node):
 
         self.marker_id_sub = self.create_subscription(Int64, 'tb3_1/marker_id', self.clbk_marker_id, 10)
         self.marker_pose_sub = self.create_subscription(Pose, 'tb3_1/marker_map_pose', self.clbk_marker_map_pose, 10)
-        #-----------------------------------------------------------------------------------
         
-        # Default values for variables
+        self.cli = self.create_client(SetMarkerPosition, '/set_marker_position')
+
         self.prev_marker_id = -1
         self.marker_id = -1
         self.marker_position = Point()
@@ -39,12 +43,9 @@ class MarkerDetection(Node):
   
 
     def timer_callback(self):
-        #-----------------------------------------------------------------------------------
-        #Whenever the current marker_id is different than the previous marker id
-        #      print out both the marker_id and the marker_position using the self.get_logger().info() function 
-
         
-        if self.marker_id not in self.marker_list and self.marker_id is not -1:
+        
+        if self.marker_id not in self.marker_list and self.marker_id != -1:
             self.get_logger().info('Marker id: ' + str(self.marker_id))
             self.get_logger().info('Position: ' + str(self.marker_position))
             self.marker_list.append(self.marker_id)
