@@ -4,9 +4,8 @@ from std_msgs.msg import Int64
 from geometry_msgs.msg import Pose, Point
 from sensor_msgs.msg    import LaserScan
 import sys, os
-sys.path.append(os.path.abspath('../multi_robot_scoring/scoring_interfaces/srv'))
 
-print(sys.path)
+sys.path.append(os.path.abspath('../multi_robot_scoring/scoring_interfaces/srv'))
 from scoring_interfaces.srv import SetMarkerPosition
 
 class MarkerDetection(Node):
@@ -24,6 +23,9 @@ class MarkerDetection(Node):
         self.marker_pose_sub = self.create_subscription(Pose, 'tb3_1/marker_map_pose', self.clbk_marker_map_pose, 10)
         
         self.cli = self.create_client(SetMarkerPosition, '/set_marker_position')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Service not available, waiting again...')
+        self.req = SetMarkerPosition.Request()
 
         self.prev_marker_id = -1
         self.marker_id = -1
@@ -42,18 +44,21 @@ class MarkerDetection(Node):
     def clbk_marker_id(self, msg):
         self.marker_id = msg.data
     
-  
+    
+    def send_request(self, id, pos):
+        self.req.marker_id = id
+        self.req.marker_position = pos
+
+        self.future = self.cli.call_async(self.req)
 
     def timer_callback(self):
         
         
         if self.marker_id not in self.marker_list and self.marker_id != -1:
-            self.get_logger().info('Marker id: ' + str(self.marker_id))
-            self.get_logger().info('Position: ' + str(self.marker_position))
+            self.send_request(self.marker_id, self.marker_position)
             self.marker_list.append(self.marker_id)
         
 
-        #-----------------------------------------------------------------------------------
         
 def main(args=None):
     rclpy.init(args=args)

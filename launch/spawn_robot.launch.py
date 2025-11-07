@@ -106,10 +106,10 @@ def generate_launch_description():
     )
 
        
-    '''scoring = launch_ros.actions.Node(
+    launch_ros.actions.Node(
         package='scoring',
         executable='scoring',
-        name='scoring'),'''
+        name='scoring'),
 
 
     #Legge inn wall_follower
@@ -122,6 +122,5 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_entity,
         tf_map_to_odom,
-        aruco_recognition,
-        #scoring
+        aruco_recognition
     ])

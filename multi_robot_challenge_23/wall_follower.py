@@ -41,18 +41,18 @@ class wallFollower(Node):
 
     def clbk_odom_tb3_0(self, msg):
         if self.position_0 is None:
-            self.starting_postition_0 = msg.pose.pose.postion
-        self.position_0 = msg.pose.pose.postion
+            self.starting_position_0 = msg.pose.pose.position
+        self.position_0 = msg.pose.pose.position
 
     def clbk_odom_tb3_1(self, msg):
         if self.position_1 is None:
-            self.starting_postition_1 = msg.pose.pose.postion
-        self.position_1 = msg.pose.pose.postion
+            self.starting_position_1 = msg.pose.pose.position
+        self.position_1 = msg.pose.pose.position
 
     def timer_callback(self):
-        if self.postion_1 is not None and self.position_0 is not None:
-            vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0, 1, self.starting_postition_0)
-            vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_right_1, -1, self.starting_postition_1)
+        if self.position_1 is not None and self.position_0 is not None:
+            vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0, 1, self.starting_position_0)
+            vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_right_1, -1, self.starting_position_1)
 
 
         self.cmd_vel_pub1.publish(vel_msg_pippi)
