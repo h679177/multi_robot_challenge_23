@@ -7,7 +7,7 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction, SetLaunchConfi
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-import launch
+
 import launch_ros
 
 import xacro

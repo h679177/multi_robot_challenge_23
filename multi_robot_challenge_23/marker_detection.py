@@ -24,7 +24,7 @@ class MarkerDetection(Node):
         
         self.cli = self.create_client(SetMarkerPosition, '/set_marker_position')
         while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting again...')
+            self.get_logger().info('Service not available')
         self.req = SetMarkerPosition.Request()
 
         self.prev_marker_id = -1
@@ -40,7 +40,6 @@ class MarkerDetection(Node):
         self.marker_position = msg.position
 
 
-
     def clbk_marker_id(self, msg):
         self.marker_id = msg.data
     
@@ -50,9 +49,10 @@ class MarkerDetection(Node):
         self.req.marker_position = pos
 
         self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
 
     def timer_callback(self):
-        
         
         if self.marker_id not in self.marker_list and self.marker_id != -1:
             self.send_request(self.marker_id, self.marker_position)

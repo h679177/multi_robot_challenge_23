@@ -53,10 +53,9 @@ class wallFollower(Node):
         if self.position_1 is not None and self.position_0 is not None:
             vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0, 1, self.starting_position_0)
             vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_right_1, -1, self.starting_position_1)
-
-
-        self.cmd_vel_pub1.publish(vel_msg_pippi)
-        self.cmd_vel_pub2.publish(vel_msg_fiona)        
+            self.cmd_vel_pub1.publish(vel_msg_pippi)
+            self.cmd_vel_pub2.publish(vel_msg_fiona)   
+     
         
     def wall_follower(self, front, atAngle, direction, start):
         vel_msg = Twist()
