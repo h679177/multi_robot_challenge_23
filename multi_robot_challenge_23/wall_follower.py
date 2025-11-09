@@ -4,82 +4,74 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 
+class Robot:
+    def __init__(self, name, direction, node):
+
+        self.name = name
+        self.node = node
+        self.direction = direction
+        self.lidar_front = 100
+        self.lidar_side = 100
+        self.lidar_back = 100
+        self.position = None
+        self.starting_position = None
+        self.state = "start"
+
+        self.scan_sub = node.create_subscription(LaserScan, f'/{name}/scan', self.clbk_laser, 10)
+        self.cmd_vel_pub = self.node.create_publisher(Twist, f'/{name}/cmd_vel', 10)
+        self.odom_sub = self.node.create_subscription(Odometry, f'/{name}/odom', self.clbk_odom, 10)
+
+    def clbk_laser(self, msg):
+        self.lidar_front = msg.ranges[0]
+        self.lidar_back = msg.ranges[180]
+        if self.direction == 1:
+            self.lidar_side = msg.ranges[45]
+        else:
+            self.lidar_side = msg.ranges[315]
+    
+    def clbk_odom(self, msg):
+        if self.position is None:
+            self.starting_position = msg.pose.pose.position
+        self.position = msg.pose.pose.position
+        #if self.starting_position_1 is not None:
+        #    self.map_divide = abs(self.starting_position_0.y - self.starting_position_1.y) / 2
+
+        
+
+
 class wallFollower(Node):
     def __init__(self):
         super().__init__('wall_follower')
-        self.scan_sub1 = self.create_subscription(LaserScan, '/tb3_0/scan', self.callback_laser_tb3_0, 10)
-        self.scan_sub2 = self.create_subscription(LaserScan, '/tb3_1/scan', self.callback_laser_tb3_1, 10)
-
-        self.cmd_vel_pub1 = self.create_publisher(Twist, '/tb3_0/cmd_vel', 10)
-        self.cmd_vel_pub2 = self.create_publisher(Twist, '/tb3_1/cmd_vel', 10)
-
-        self.odom_sub1 = self.create_subscription(Odometry, '/tb3_0/odom', self.clbk_odom_tb3_0, 10) 
-        self.odom_sub2 = self.create_subscription(Odometry, '/tb3_1/odom', self.clbk_odom_tb3_1, 10) 
-       
-       
-        self.lidar_front_0 = 100
-        self.lidar_left_0 = 100
-        self.lidar_front_1 = 100
-        self.lidar_right_1 = 100
-        self.lidar_back_0 = 100
-        self.lidar_back_1 = 100
-        self.position_0 = None
-        self.position_1 = None
-        self.starting_position_0 = None
-        self.starting_position_1 = None
-        self.state = "start"
+              
         self.distance_from_wall = 0.6
+
+        self.pippi = Robot('tb3_0', 1, self)
+        self.fiona = Robot('tb3_1', -1, self)
         
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback) 
     
-
-
-    def callback_laser_tb3_0(self, msg):
-        self.lidar_front_0 = msg.ranges[0]
-        self.lidar_left_0 = msg.ranges[45]
-        self.lidar_back_0 = msg.ranges[180]
-        
-    def callback_laser_tb3_1(self, msg):
-        self.lidar_front_1 = msg.ranges[0]
-        self.lidar_right_1 = msg.ranges[315]
-        self.lidar_back_1 = msg.ranges[180]
-
-    def clbk_odom_tb3_0(self, msg):
-        if self.position_0 is None:
-            self.starting_position_0 = msg.pose.pose.position
-            if self.starting_position_1 is not None:
-                self.map_divide = abs(self.starting_position_0.y - self.starting_position_1.y) / 2
-        self.position_0 = msg.pose.pose.position
-
-    def clbk_odom_tb3_1(self, msg):
-        if self.position_1 is None:
-            self.starting_position_1 = msg.pose.pose.position
-            if self.starting_position_0 is not None:
-                self.map_divide = abs(self.starting_position_0.y - self.starting_position_1.y) / 2
-        self.position_1 = msg.pose.pose.position
-
     def timer_callback(self):
-        if self.position_1 is not None and self.position_0 is not None:
-            vel_msg_pippi = self.wall_follower(self.lidar_front_0, self.lidar_left_0, 1, self.starting_position_0, self.position_0, self.lidar_back_0)
-            vel_msg_fiona = self.wall_follower(self.lidar_front_1, self.lidar_right_1, -1, self.starting_position_1, self.position_1, self.lidar_back_1)
-            self.cmd_vel_pub1.publish(vel_msg_pippi)
-            self.cmd_vel_pub2.publish(vel_msg_fiona)   
+        if self.pippi.position is not None and self.fiona.position is not None:
+            vel_msg_pippi = self.wall_follower(self.pippi)
+            vel_msg_fiona = self.wall_follower(self.fiona)
+            self.pippi.cmd_vel_pub.publish(vel_msg_pippi)
+            self.fiona.cmd_vel_pub.publish(vel_msg_fiona)
      
         
-    def wall_follower(self, front, atAngle, direction, start, pos, back):
+    def wall_follower(self, robot):
         vel_msg = Twist()
 
-        if self.state == "start":
+        if robot.state == "start":
             #if direction == 1:
                 #self.get_logger().info("start")
             vel_msg.linear.x = 0.5
             vel_msg.angular.z = 0.0
             
-            if front <= self.distance_from_wall or atAngle <= self.distance_from_wall:
-                self.state = "wall_found"
+            if robot.lidar_front <= self.distance_from_wall or robot.lidar_side <= self.distance_from_wall:
+                robot.state = "wall_found"
        
-        elif self.state == "wall_found":
+        elif robot.state == "wall_found":
             vel_msg.linear.x = 0.2
             vel_msg.angular.z = 0.0
 
@@ -97,40 +89,39 @@ class wallFollower(Node):
 
             '''
             
-            if abs(pos.y - start.y) < 0.2 and pos.x < start.x:
-               self.get_logger().info("gikk inn i stopp")
+            if abs(robot.position.y - robot.starting_position.y) < 0.2 and robot.position.x < robot.starting_position.x:
                vel_msg.linear.x = 0.0
                vel_msg.angular.y = 0.0
 
             #wall to follow on left side
             #if direction == 1:
                 #self.get_logger().info("wall on left")
-            elif (self.distance_from_wall - 0.1) <= atAngle <= (self.distance_from_wall + 0.1):
+            elif (self.distance_from_wall - 0.1) <= robot.lidar_side <= (self.distance_from_wall + 0.1):
                 vel_msg.linear.x = 0.5
                 vel_msg.angular.z = 0.0
 
             #Wall in front
             #if direction == 1:
                 #self.get_logger().info("wall in front")
-            elif front <= self.distance_from_wall:
+            elif robot.lidar_front <= self.distance_from_wall:
                 vel_msg.linear.x = 0.0
-                vel_msg.angular.z = -0.5 * direction
-                if front <= self.distance_from_wall - 0.3:
+                vel_msg.angular.z = -0.5 * robot.direction
+                if robot.lidar_front <= self.distance_from_wall - 0.3:
                     vel_msg.linear.x = -0.3
 
             #Wall too close on left side
             #if direction == 1:
                 #self.get_logger().info("wall too close")
-            elif atAngle < (self.distance_from_wall - 0.1):
+            elif robot.lidar_side < (self.distance_from_wall - 0.1):
                 vel_msg.linear.x = 0.4
-                vel_msg.angular.z = -0.2 * direction
+                vel_msg.angular.z = -0.2 * robot.direction
 
             #Lost wall
             #if direction == 1:
                 #self.get_logger().info("lost wall")
-            elif atAngle > self.distance_from_wall:
+            elif robot.lidar_side > self.distance_from_wall:
                 vel_msg.linear.x = 0.1
-                vel_msg.angular.z = 0.5 * direction
+                vel_msg.angular.z = 0.5 * robot.direction
             
 
         return vel_msg
