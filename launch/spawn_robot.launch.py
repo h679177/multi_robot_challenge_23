@@ -111,12 +111,13 @@ def generate_launch_description():
         executable='scoring',
         name='scoring'),
 
-
+    '''
     wall_follower = launch_ros.actions.Node(
         package='multi_robot_challenge_23',
         executable='wall_follower',
         name='wf_node'
     )
+    '''
 
     marker_detection = launch_ros.actions.Node(
         package='multi_robot_challenge_23',
@@ -135,6 +136,6 @@ def generate_launch_description():
         spawn_entity,
         tf_map_to_odom,
         aruco_recognition,
-        wall_follower,
+        #wall_follower,
         marker_detection,
     ])

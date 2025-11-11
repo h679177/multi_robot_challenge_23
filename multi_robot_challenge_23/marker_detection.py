@@ -22,12 +22,12 @@ class MarkerDetection(Node):
         self.marker_id_sub = self.create_subscription(Int64, 'tb3_1/marker_id', self.clbk_marker_id, 10)
         self.marker_pose_sub = self.create_subscription(Pose, 'tb3_1/marker_map_pose', self.clbk_marker_map_pose, 10)
         
-        '''
+        
         self.cli = self.create_client(SetMarkerPosition, '/set_marker_position')
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available')
         self.req = SetMarkerPosition.Request()
-'''
+
         self.prev_marker_id = -1
         self.marker_id = -1
         self.marker_position = Point()
@@ -49,16 +49,16 @@ class MarkerDetection(Node):
         self.req.marker_id = id
         self.req.marker_position = pos
 
-        #self.future = self.cli.call_async(self.req)
-        #rclpy.spin_until_future_complete(self, self.future)
-        #return self.future.result()
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
 
     def timer_callback(self):
         
         if self.marker_id not in self.marker_list and self.marker_id != -1:
             self.get_logger().info("ID: " + str(self.marker_id))
             self.get_logger().info("Pos: " + str(self.marker_position))
-            #self.send_request(self.marker_id, self.marker_position)
+            self.send_request(self.marker_id, self.marker_position)
             self.marker_list.append(self.marker_id)
         
 

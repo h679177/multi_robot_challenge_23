@@ -5,11 +5,11 @@ from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 
 class Robot:
-    def __init__(self, name, direction, node):
+    def __init__(self, name, node):
 
         self.name = name
         self.node = node
-        self.direction = direction
+        self.direction = 0
         self.lidar_front = 100
         self.lidar_side = 100
         self.lidar_back = 100
@@ -44,9 +44,10 @@ class wallFollower(Node):
         super().__init__('wall_follower')
               
         self.distance_from_wall = 0.6
+        self.map_division = None
 
-        self.pippi = Robot('tb3_0', 1, self)
-        self.fiona = Robot('tb3_1', -1, self)
+        self.pippi = Robot('tb3_0', self)
+        self.fiona = Robot('tb3_1', self)        
         
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback) 
@@ -68,6 +69,17 @@ class wallFollower(Node):
             vel_msg.linear.x = 0.5
             vel_msg.angular.z = 0.0
             
+            if self.pippi.starting_position is not None and self.fiona.starting_position is not None and self.map_division is None:
+                self.map_division = (self.pippi.starting_position.y + self.fiona.starting_position.y) / 2
+                self.get_logger().info("Division line: " + str(self.map_division))
+            if robot.direction == 0:
+                if robot.position.y < self.map_division:
+                    robot.direction = 1
+                    self.get_logger().info(str(robot.name) + str(robot.direction) + " Position: " + str(robot.position))
+                else:
+                    robot.direction = -1
+                    self.get_logger().info(str(robot.name) + str(robot.direction) + " Position: " + str(robot.position))
+
             if robot.lidar_front <= self.distance_from_wall or robot.lidar_side <= self.distance_from_wall:
                 robot.state = "wall_found"
        
@@ -75,34 +87,23 @@ class wallFollower(Node):
             vel_msg.linear.x = 0.2
             vel_msg.angular.z = 0.0
 
-            '''
-            if ((pos.y - self.map_divide) * direction) < 0:
-                #if direction == 1:
-                    #self.get_logger().info("skift vegg")
+            if self.map_division - 0.2 < robot.position.y < self.map_division + 0.2:
+                self.get_logger().info(robot.name + "is here.")
                 vel_msg.linear.x = 0.0
-                vel_msg.angular.z = -0.5 * direction
-                if (self.distance_from_wall + 0.2) <= back:
-                    if direction == 1:
-                        self.state_0 = "start"
-                    else:
-                        self.state_1 = "start"
-
-            '''
+                vel_msg.angular.z = -0.5 * robot.direction
+                if (self.distance_from_wall + 0.2) <= robot.lidar_back:
+                    robot.state = "start"
             
-            if abs(robot.position.y - robot.starting_position.y) < 0.2 and robot.position.x < robot.starting_position.x:
-               vel_msg.linear.x = 0.0
-               vel_msg.angular.y = 0.0
+            #if abs(robot.position.y - robot.starting_position.y) < 0.2 and robot.position.x < robot.starting_position.x:
+            #   vel_msg.linear.x = 0.0
+            #   vel_msg.angular.y = 0.0
 
             #wall to follow on left side
-            #if direction == 1:
-                #self.get_logger().info("wall on left")
             elif (self.distance_from_wall - 0.1) <= robot.lidar_side <= (self.distance_from_wall + 0.1):
                 vel_msg.linear.x = 0.5
                 vel_msg.angular.z = 0.0
 
             #Wall in front
-            #if direction == 1:
-                #self.get_logger().info("wall in front")
             elif robot.lidar_front <= self.distance_from_wall:
                 vel_msg.linear.x = 0.0
                 vel_msg.angular.z = -0.5 * robot.direction
@@ -110,15 +111,13 @@ class wallFollower(Node):
                     vel_msg.linear.x = -0.3
 
             #Wall too close on left side
-            #if direction == 1:
-                #self.get_logger().info("wall too close")
             elif robot.lidar_side < (self.distance_from_wall - 0.1):
+                #if robot.direction == 1:
+                    #self.get_logger().info("wall too close")
                 vel_msg.linear.x = 0.4
                 vel_msg.angular.z = -0.2 * robot.direction
 
             #Lost wall
-            #if direction == 1:
-                #self.get_logger().info("lost wall")
             elif robot.lidar_side > self.distance_from_wall:
                 vel_msg.linear.x = 0.1
                 vel_msg.angular.z = 0.5 * robot.direction
