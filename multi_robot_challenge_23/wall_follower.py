@@ -13,6 +13,7 @@ class Robot:
         self.lidar_front = 100
         self.lidar_side = 100
         self.lidar_back = 100
+        self.lidar_prev_back = 100
         self.position = None
         self.starting_position = None
         self.state = "start"
@@ -83,16 +84,31 @@ class wallFollower(Node):
             if robot.lidar_front <= self.distance_from_wall or robot.lidar_side <= self.distance_from_wall:
                 robot.state = "wall_found"
        
+        elif robot.state == "find_new_wall":
+            vel_msg.linear.x = 0.0
+            vel_msg.angular.z = -0.5 * robot.direction
+            if robot.lidar_prev_back < robot.lidar_back:
+                if robot.lidar_prev_back == 100:
+                    robot.lidar_prev_back = robot.lidar_back
+                robot.state = "start"
+            else:
+                self.get_logger().info("Turning: " + str(robot.lidar_prev_back) + " This back: " + str(robot.lidar_back))
+                vel_msg.linear.x = 0.0
+                vel_msg.angular.z = -0.5 * robot.direction
+                robot.lidar_prev_back = robot.lidar_back
+
+
+
+        
         elif robot.state == "wall_found":
             vel_msg.linear.x = 0.2
             vel_msg.angular.z = 0.0
 
             if self.map_division - 0.2 < robot.position.y < self.map_division + 0.2:
-                self.get_logger().info(robot.name + "is here.")
+                robot.state = "find_new_wall"
                 vel_msg.linear.x = 0.0
                 vel_msg.angular.z = -0.5 * robot.direction
-                if (self.distance_from_wall + 0.2) <= robot.lidar_back:
-                    robot.state = "start"
+                self.get_logger().info(robot.name + "is finding her new wall.")
             
             #if abs(robot.position.y - robot.starting_position.y) < 0.2 and robot.position.x < robot.starting_position.x:
             #   vel_msg.linear.x = 0.0
