@@ -56,6 +56,7 @@ class MarkerDetection(Node):
     def timer_callback(self):
         
         if self.marker_id not in self.marker_list and self.marker_id != -1:
+            self.get_logger().info(str(self.marker_id) + str(self.marker_list))
             self.get_logger().info("ID: " + str(self.marker_id))
             self.get_logger().info("Pos: " + str(self.marker_position))
             self.send_request(self.marker_id, self.marker_position)
