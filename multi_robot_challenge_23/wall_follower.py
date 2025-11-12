@@ -17,6 +17,7 @@ class Robot:
         self.position = None
         self.starting_position = None
         self.state = "start"
+        self.can_change_wall = True
 
         self.scan_sub = node.create_subscription(LaserScan, f'/{name}/scan', self.clbk_laser, 10)
         self.cmd_vel_pub = self.node.create_publisher(Twist, f'/{name}/cmd_vel', 10)
@@ -44,7 +45,7 @@ class wallFollower(Node):
     def __init__(self):
         super().__init__('wall_follower')
               
-        self.distance_from_wall = 0.6
+        self.distance_from_wall = 0.7
         self.map_division = None
 
         self.pippi = Robot('tb3_0', self)
@@ -63,12 +64,14 @@ class wallFollower(Node):
         
     def wall_follower(self, robot):
         vel_msg = Twist()
+        #self.get_logger().info(robot.state)
 
         if robot.state == "start":
             #if direction == 1:
                 #self.get_logger().info("start")
             vel_msg.linear.x = 0.5
             vel_msg.angular.z = 0.0
+            robot.lidar_prev_back = 100
             
             if self.pippi.starting_position is not None and self.fiona.starting_position is not None and self.map_division is None:
                 self.map_division = (self.pippi.starting_position.y + self.fiona.starting_position.y) / 2
@@ -85,14 +88,20 @@ class wallFollower(Node):
                 robot.state = "wall_found"
        
         elif robot.state == "find_new_wall":
+
+            robot.can_change_wall = False
             vel_msg.linear.x = 0.0
             vel_msg.angular.z = -0.5 * robot.direction
+            self.get_logger().info("Turning: " + str(robot.lidar_prev_back) + " This back: " + str(robot.lidar_back))
+            if robot.lidar_back > 1.0:
+                vel_msg.linear.x = 0.0
+                vel_msg.angular.z = -0.5 * robot.direction
+                robot.lidar_prev_back = robot.lidar_back
             if robot.lidar_prev_back < robot.lidar_back:
                 if robot.lidar_prev_back == 100:
                     robot.lidar_prev_back = robot.lidar_back
                 robot.state = "start"
             else:
-                self.get_logger().info("Turning: " + str(robot.lidar_prev_back) + " This back: " + str(robot.lidar_back))
                 vel_msg.linear.x = 0.0
                 vel_msg.angular.z = -0.5 * robot.direction
                 robot.lidar_prev_back = robot.lidar_back
@@ -103,19 +112,17 @@ class wallFollower(Node):
         elif robot.state == "wall_found":
             vel_msg.linear.x = 0.2
             vel_msg.angular.z = 0.0
+            if  robot.position.y < self.map_division - 0.6 or robot.position.y > self.map_division + 0.6:
+                robot.can_change_wall = True
 
-            if self.map_division - 0.2 < robot.position.y < self.map_division + 0.2:
+            elif self.map_division - 0.2 < robot.position.y < self.map_division + 0.2 and robot.can_change_wall:
                 robot.state = "find_new_wall"
                 vel_msg.linear.x = 0.0
                 vel_msg.angular.z = -0.5 * robot.direction
                 self.get_logger().info(robot.name + "is finding her new wall.")
             
-            #if abs(robot.position.y - robot.starting_position.y) < 0.2 and robot.position.x < robot.starting_position.x:
-            #   vel_msg.linear.x = 0.0
-            #   vel_msg.angular.y = 0.0
-
             #wall to follow on left side
-            elif (self.distance_from_wall - 0.1) <= robot.lidar_side <= (self.distance_from_wall + 0.1):
+            if (self.distance_from_wall - 0.1) <= robot.lidar_side <= (self.distance_from_wall + 0.1):
                 vel_msg.linear.x = 0.5
                 vel_msg.angular.z = 0.0
 

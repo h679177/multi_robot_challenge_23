@@ -50,7 +50,7 @@ class MarkerDetection(Node):
         self.req.marker_position = pos
 
         self.future = self.cli.call_async(self.req)
-        rclpy.spin_until_future_complete(self, self.future)
+        #rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
 
     def timer_callback(self):
